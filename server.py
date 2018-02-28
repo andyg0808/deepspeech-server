@@ -1,18 +1,18 @@
 import subprocess
-import json
-import requests
+import os
 from flask import Flask, request
 app = Flask(__name__)
 
 @app.route("/", methods=['POST'])
 def hello():
-    request.files
-    #req = request.get_json()
-    #print(request.headers)
-    with subprocess.Popen(["bash", "-c", "echo deepspeech models/output_graph.pb file16000.wav models/alphabet.txt"], stdout=subprocess.PIPE) as proc:
+    print(request.files)
+    if len(request.files) != 1:
+        return ""
+    else:
+        data = request.files['file']
+        print(data.fileno())
+    with subprocess.Popen(["bash", "-c", "./native/deepspeech models/output_graph.pb /proc/{}/fd/{} models/alphabet.txt".format(os.getpid(), data.fileno())], stdout=subprocess.PIPE) as proc:
         proc.wait()
         out, _ = proc.communicate()
-        #return_address = req['return_address']
         return out
-    #return json.dumps({"result": "success"})
         

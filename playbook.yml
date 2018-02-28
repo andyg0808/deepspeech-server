@@ -1,0 +1,12 @@
+- hosts: all
+  tasks:
+    - name: Install decoder service description file
+      become: true
+      copy:
+        src: decoder.service
+        dest: /etc/avahi/services
+    - name: Reload avahi-daemon
+      become: true
+      service:
+        name: avahi-daemon.service
+        state: restarted
