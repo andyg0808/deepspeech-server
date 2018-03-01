@@ -10,11 +10,13 @@
       service:
         name: avahi-daemon.service
         state: restarted
-    - name: Sync models onto system
+    - name: Sync model alphabet onto system
       synchronize:
-        copy_links: no
-        recursive: yes
-        src: ./models/
+        src: ./models/alphabet.txt
+        dest: /home/pi/models
+    - name: Sync model graph onto system
+      synchronize:
+        src: ./models/output_graph.pb
         dest: /home/pi/models
     - name: Clone repo onto system
       synchronize:
