@@ -1,0 +1,40 @@
+- hosts: localhost
+  tasks:
+    - name: Add key to authorized_keys on default system
+      command: ssh-copy-id pi@192.168.1.222
+- hosts: default
+  become: true
+  tasks:
+    - name: Set hostname
+      hostname: 
+        name: ada
+    - name: Add avahi-daemon
+      apt:
+        name: avahi-daemon
+        state: present
+    - name: Install docker
+      apt:
+        name: docker.io
+        state: present
+    - name: Add docker group
+      group:
+        name: docker
+    - name: Add pi user to docker group
+      user:
+        name: pi
+        groups: docker
+    - name: Expose system via zeroconf
+      lineinfile:
+        path: /etc/avahi/avahi-daemon.conf
+        regexp: publish-workstation
+        line: publish-workstation=yes
+    - name: Reload avahi-daemon
+      service:
+        name: avahi-daemon.service
+        state: restarted
+    - name: Set standard password for user
+      user:
+        name: pi
+        password: $6$viole3wVgD6Wlz$FHn3xscVuWuibRzbHhbu7B4N8.dn9Hox4nTgvprqWT9RsB7e2mSRDWusS.MzFc4TrHW3sPep9Jh561CU6qocr.
+    - name: Lock user account
+      command: passwd -l pi

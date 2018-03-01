@@ -1,2 +1,8 @@
-[systems]
+[main]
+ada.local ansible_user=pi
+
+[default]
+192.168.1.222 ansible_user=pi
+
+[other]
 localhost  ansible_connection=local

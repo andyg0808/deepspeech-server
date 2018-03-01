@@ -1,4 +1,4 @@
-- hosts: all
+- hosts: main
   tasks:
     - name: Install decoder service description file
       become: true
@@ -10,3 +10,20 @@
       service:
         name: avahi-daemon.service
         state: restarted
+    - name: Sync models onto system
+      synchronize:
+        copy_links: no
+        recursive: yes
+        src: ./models/
+        dest: /home/pi/models
+    - name: Clone repo onto system
+      synchronize:
+        recursive: yes
+        src: ./
+        dest: /home/pi/project
+    - name: Install decoder service file
+      become: true
+      copy:
+        src: deepspeech-server.service
+        dest: /etc/systemd/system/
+
