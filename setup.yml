@@ -1,13 +1,18 @@
 - hosts: localhost
   tasks:
     - name: Add key to authorized_keys on default system
-      command: ssh-copy-id pi@192.168.1.222
-- hosts: default
+      command: "ssh-copy-id pi@{{hostvars[host].ip}}"
+- hosts: "{{host}}"
+  vars_files:
+    - ./vault.yml
   become: true
+  vars:
+    ansible_host: "{{ip}}"
+    ansible_user: pi
   tasks:
     - name: Set hostname
       hostname: 
-        name: ada
+        name: "{{inventory_hostname_short}}"
     - name: Add avahi-daemon
       apt:
         update_cache: yes
@@ -34,7 +39,7 @@
     - name: Set standard password for user
       user:
         name: pi
-        password: $6$viole3wVgD6Wlz$FHn3xscVuWuibRzbHhbu7B4N8.dn9Hox4nTgvprqWT9RsB7e2mSRDWusS.MzFc4TrHW3sPep9Jh561CU6qocr.
+        password: "{{password | password_hash('sha256')}}"
     - name: Lock user account
       command: passwd -l pi
     - name: Copy DNS config

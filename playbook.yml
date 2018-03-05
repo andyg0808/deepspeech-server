@@ -1,4 +1,6 @@
 - hosts: main
+  vars:
+    ansible_user: pi
   strategy: free
   tasks:
     - name: Install decoder service description file
