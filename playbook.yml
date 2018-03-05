@@ -1,4 +1,5 @@
 - hosts: main
+  strategy: free
   tasks:
     - name: Install decoder service description file
       become: true
