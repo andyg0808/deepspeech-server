@@ -42,7 +42,6 @@
         password: "{{password | password_hash('sha256')}}"
     - name: Lock user account
       command: passwd -l pi
-    - name: Copy DNS config
-      copy:
-        src: interfaces
-        dest: /etc/network/interfaces
+    - name: Install network-manager
+      apt:
+        name: network-manager
