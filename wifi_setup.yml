@@ -1,0 +1,7 @@
+- hosts: "{{host}}"
+  vars_files:
+    - ./wifi.yml
+  become: true
+  tasks:
+    - name: Add wifi network
+      command: "nmcli dev wifi con {{wifi_ssid}} password {{wifi_password}}"
