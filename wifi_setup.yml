@@ -1,7 +1,18 @@
 - hosts: "{{host}}"
+  vars:
+    ansible_user: pi
   vars_files:
     - ./wifi.yml
   become: true
   tasks:
+    - name: Install network-manager
+      # This breaks avahi on the Pi
+      apt:
+        package: network-manager
+    - name: Remove dhcpd
+      # If we don't do this, network-manager won't be able to manage the Wifi
+      apt:
+        package: dhcpd
+        state: absent
     - name: Add wifi network
       command: "nmcli dev wifi con {{wifi_ssid}} password {{wifi_password}}"
