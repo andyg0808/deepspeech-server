@@ -1,7 +1,7 @@
 - hosts: main
   vars:
     ansible_user: pi
-  strategy: free
+    #strategy: free
   tasks:
     - name: Install decoder service description file
       become: true
@@ -13,6 +13,10 @@
       service:
         name: avahi-daemon.service
         state: restarted
+    - name: Create model directory
+      file:
+        state: directory
+        path: /home/pi/models
     - name: Sync model alphabet onto system
       synchronize:
         checksum: yes
@@ -31,6 +35,11 @@
     - name: Clone repo onto system
       git:
         repo: https://github.com/andyg0808/deepspeech-server.git
+        dest: /home/pi/project
+    - name: Copy native client to pi
+      synchronize:
+        recursive: yes
+        src: ./native
         dest: /home/pi/project
     - name: Install decoder service file
       become: true
@@ -80,7 +89,7 @@
       become: true
       lineinfile:
         path: /etc/fstab
-        pattern: /swapfile
+        regexp: /swapfile
         line: /swapfile swap swap defaults
     - name: Mount swap
       become: true
