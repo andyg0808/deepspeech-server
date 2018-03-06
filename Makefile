@@ -24,4 +24,4 @@ deepspeech:
 	python DeepSpeech/util/taskcluster.py --arch arm --target native
 
 wifi:
-	ansible-playbook --ask-vault-pass -i hosts wifi_setup.yml
+	./wifi_host.sh

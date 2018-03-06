@@ -1,5 +1,9 @@
 - hosts: localhost
   tasks:
+    - name: Clear out old keys for ip
+      command: "ssh-keygen -R {{hostvars[host].ip}}"
+    - name: Clear out old keys for hostname
+      command: "ssh-keygen -R {{host}}"
     - name: Add key to authorized_keys on default system
       command: "ssh-copy-id pi@{{hostvars[host].ip}}"
 - hosts: "{{host}}"
@@ -26,21 +30,15 @@
       apt:
         update_cache: yes
         name: avahi-daemon
-    - name: Install docker
-      apt:
-        name: docker.io
-    - name: Add docker group
-      group:
-        name: docker
-    - name: Add pi user to docker group
-      user:
-        name: pi
-        groups: docker
     - name: Expose system via zeroconf
       lineinfile:
         path: /etc/avahi/avahi-daemon.conf
         regexp: publish-workstation
         line: publish-workstation=yes
+        #    - name: Allow avahi-daemon to run despite .local
+        #      lineinfile:
+        #        path: /etc/default/avahi-daemon
+
     - name: Reload avahi-daemon
       service:
         name: avahi-daemon.service

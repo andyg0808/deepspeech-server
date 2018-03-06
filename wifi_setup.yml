@@ -1,6 +1,6 @@
 # Commands in this file based on
 # https://www.raspberrypi.org/documentation/configuration/wireless/wireless-cli.md
-- hosts: main
+- hosts: "{{host}}"
   vars:
     ansible_user: pi
   vars_files:

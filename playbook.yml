@@ -17,12 +17,17 @@
       synchronize:
         checksum: yes
         src: ./models/alphabet.txt
-        dest: /home/pi/models
+        dest: /home/pi/models/alphabet.txt
     - name: Sync model graph onto system
       synchronize:
         checksum: yes
         src: ./models/output_graph.pb
-        dest: /home/pi/models
+        dest: /home/pi/models/output_graph.pb
+    - name: Install git
+      become: true
+      apt:
+        update_cache: true
+        name: git
     - name: Clone repo onto system
       git:
         repo: https://github.com/andyg0808/deepspeech-server.git
@@ -35,7 +40,6 @@
     - name: Install libsox2 for deepspeech
       become: true
       apt:
-        update_cache: true
         name: libsox2
     - name: Install pip
       become: true
@@ -53,7 +57,37 @@
       command: pipenv install --system --skip-lock
       # We have to ignore the Pipfile.lock for this, because it's got hashes
       # for x86_64 packages in it, and the ARM packages have different hashes.
+
+    - name: Check if swapfile exists
+      # See https://stackoverflow.com/a/35680071/2243495
+      become: true
+      stat:
+        path: /swapfile
+      register: swapfile_stat
+    - name: Create swapfile
+      become: true
+      command: dd if=/dev/zero of=/swapfile bs=500M count=1
+      when: swapfile_stat.stat.exists == False
+    - name: Set permissions of swapfile
+      become: true
+      file:
+        path: /swapfile
+        mode: 0600
+    - name: Format swapfile
+      become: true
+      command: mkswap /swapfile
+    - name: Activate swap in fstab
+      become: true
+      lineinfile:
+        path: /etc/fstab
+        pattern: /swapfile
+        line: /swapfile swap swap defaults
+    - name: Mount swap
+      become: true
+      command: swapon -a
+
     - name: Start decoder service
+      become: true
       service:
         name: deepspeech-server.service
         state: started
