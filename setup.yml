@@ -10,6 +10,15 @@
     ansible_host: "{{ip}}"
     ansible_user: pi
   tasks:
+    - name: Enable en_US.UTF-8
+      lineinfile:
+        path: /etc/locale.gen
+        regexp: en_US.UTF-8
+        line: en_US.UTF-8 UTF-8
+    - name: Generate localization files
+      command: locale-gen
+    - name: Update locale config
+      command: update-locale en_US.UTF-8
     - name: Set hostname
       hostname: 
         name: "{{inventory_hostname_short}}"
@@ -40,8 +49,7 @@
       user:
         name: pi
         password: "{{password | password_hash('sha256')}}"
-    - name: Lock user account
-      command: passwd -l pi
-    - name: Install network-manager
-      apt:
-        name: network-manager
+    - name: Copy DNS server config for ethernet
+      command: echo "nameserver 8.8.8.8" | resolvconf -a eth0
+    - name: Copy DNS server config for wifi
+      command: echo "nameserver 8.8.8.8" | resolvconf -a wlan0

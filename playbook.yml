@@ -15,20 +15,46 @@
         state: restarted
     - name: Sync model alphabet onto system
       synchronize:
+        checksum: yes
         src: ./models/alphabet.txt
         dest: /home/pi/models
     - name: Sync model graph onto system
       synchronize:
+        checksum: yes
         src: ./models/output_graph.pb
         dest: /home/pi/models
     - name: Clone repo onto system
-      synchronize:
-        recursive: yes
-        src: ./
+      git:
+        repo: https://github.com/andyg0808/deepspeech-server.git
         dest: /home/pi/project
     - name: Install decoder service file
       become: true
       copy:
         src: deepspeech-server.service
         dest: /etc/systemd/system/
-
+    - name: Install libsox2 for deepspeech
+      become: true
+      apt:
+        update_cache: true
+        name: libsox2
+    - name: Install pip
+      become: true
+      apt:
+        name: python3-pip
+    - name: Install pipenv
+      become: true
+      pip:
+        executable: pip3
+        name: pipenv
+    - name: Install other needed components
+      become: true
+      args:
+        chdir: /home/pi/project
+      command: pipenv install --system --skip-lock
+      # We have to ignore the Pipfile.lock for this, because it's got hashes
+      # for x86_64 packages in it, and the ARM packages have different hashes.
+    - name: Start decoder service
+      service:
+        name: deepspeech-server.service
+        state: started
+        enabled: yes

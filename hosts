@@ -1,8 +1,7 @@
 [main]
-ada.local ansible_user=pi
-
-[default]
-192.168.1.222 ansible_user=pi
+alpha.local ip=192.168.1.222
+acorn.local ip=192.168.1.134
+abbey.local ip=192.168.1.169
 
 [other]
 localhost  ansible_connection=local
