@@ -19,12 +19,10 @@
         path: /home/pi/models
     - name: Sync model alphabet onto system
       synchronize:
-        checksum: yes
         src: ./models/alphabet.txt
         dest: /home/pi/models/alphabet.txt
     - name: Sync model graph onto system
       synchronize:
-        checksum: yes
         src: ./models/output_graph.pb
         dest: /home/pi/models/output_graph.pb
     - name: Install git
@@ -46,6 +44,10 @@
       copy:
         src: deepspeech-server.service
         dest: /etc/systemd/system/
+    - name: Install sox for deepspeech
+      become: true
+      apt:
+        name: sox
     - name: Install libsox2 for deepspeech
       become: true
       apt:
@@ -85,6 +87,7 @@
     - name: Format swapfile
       become: true
       command: mkswap /swapfile
+      when: swapfile_stat.stat.exists == False
     - name: Activate swap in fstab
       become: true
       lineinfile:
@@ -94,6 +97,13 @@
     - name: Mount swap
       become: true
       command: swapon -a
+
+    - name: Reload decoder service
+      become: true
+      service:
+        name: deepspeech-server.service
+        state: reloaded
+        enabled: yes
 
     - name: Start decoder service
       become: true

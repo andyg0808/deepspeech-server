@@ -17,4 +17,8 @@ def hello():
             proc.wait()
             out, _ = proc.communicate()
             return out
-        
+
+
+@app.route("/test", methods=['POST'])
+def test():
+    return "sample text"

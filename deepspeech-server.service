@@ -4,6 +4,7 @@ Description="DeepSpeech speech recognition service"
 [Service]
 Type=simple
 Environment=FLASK_APP=server.py
+WorkingDirectory=/home/pi/project
 ExecStart=/usr/local/bin/flask run --host=0.0.0.0 --port=8035
 User=pi
 
