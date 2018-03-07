@@ -98,13 +98,6 @@
       become: true
       command: swapon -a
 
-    - name: Reload decoder service
-      become: true
-      service:
-        name: deepspeech-server.service
-        state: reloaded
-        enabled: yes
-
     - name: Start decoder service
       become: true
       service:
