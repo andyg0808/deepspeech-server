@@ -1,7 +1,7 @@
 .PHONY: run image query configure
 
 install:
-	ansible-playbook -i hosts playbook.yml
+	ansible-playbook -i teamhosts playbook.yml
 
 run:
 	docker run -p 8035:80 --mount type=bind,source="$(PWD)/models",target=/usr/src/app/models deepspeech-server

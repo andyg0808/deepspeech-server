@@ -1,0 +1,7 @@
+[main]
+alpha.local ip=192.168.1.13
+bravo.local ip=192.168.1.11
+delta.local ip=192.168.1.15
+
+[other]
+localhost  ansible_connection=local
