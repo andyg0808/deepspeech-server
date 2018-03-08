@@ -3,69 +3,82 @@ Usage:
     distributor.py <directory> <hosts_file>
 """
 import requests
+from functools import partial
 import docopt
 import re
 from pathlib import Path
 import time
 import asyncio
 import logging
+import redf
 
 GROUP = re.compile(r"\[(\S+)\]")
 
 
-class Looper:
-    def __init__(self):
-        self.loop = asyncio.get_event_loop()
-        self.loop.set_debug(True)
-        logging.getLogger('asyncio').setLevel(logging.WARNING)
+loop = asyncio.get_event_loop()
+loop.set_debug(True)
+logging.getLogger('asyncio').setLevel(logging.WARNING)
 
-    def check(self, seen, text, watchable, hosts):
-        print("Checking...")
-        for f in watchable.glob('*'):
-            if f not in seen:
-                print(f)
-                seen.add(f)
-                fut = self.send('localhost', f)
 
-                def callback(fut):
-                    print("abc")
-                    print(fut)
-                    text.append(fut.result())
-                    print(text)
+def combine(lfut):
+    fut = loop.create_future()
+    fut.set_result([])
+    for f in lfut:
+        fut = tie(fut, f)
+    return fut
 
-                fut.add_done_callback(callback)
-                while not fut.done():
-                    print("waiting for future...")
-                    time.sleep(.01)
-                for i in range(10):
-                    time.sleep(.1)
-                    print(' '.join(text))
-        if len(list(watchable.glob('*'))) == 0:
-            text = []
-        self.loop.call_later(.25, self.check, seen, text, watchable, hosts)
-        
-    def send(self, host, audio):
-        future = asyncio.Future()
-        print("Sending {} to {}".format(audio, host))
-        f = open(audio, "rb")
-        files = {'file': f}
 
-        def hook(r, *args, **kwargs):
-            f.close()
-            future.set_result(r.text.strip())
+def tie(fut1, fut2):
+    fut = loop.create_future()
 
-        hooks = {'response': hook}
-        requests.post("http://{}:8035/test".format(host), files=files,
-                      hooks=hooks)
-        return future
+    def finish_all(f1, f2):
+        fut.set_result(f1 + [f2.result()])
 
-    def watch(self, directory, hosts):
-        print(self.loop)
-        seen = set()
-        text = []
-        watchable = Path(directory)
-        self.loop.call_soon(self.check, seen, text, watchable, hosts)
-        self.loop.run_forever()
+    def setup_2(f1):
+        func = partial(finish_all, f1.result())
+        fut2.add_done_callback(finish_all)
+
+    fut1.add_done_callback(setup_2)
+    return fut
+
+
+def check(seen, text, watchable, hosts):
+    print("Checking...")
+    futures = []
+    for f in watchable.glob('*'):
+        if f not in seen:
+            print(f)
+            seen.add(f)
+            coro = loop.run_in_executor(None, send, 'localhost', f)
+            fut = loop.create_task(coro)
+            futures.append(fut)
+
+    def printout(f):
+        lst = f.result()
+        print(lst)
+
+    fut = combine(futures)
+    fut.add_done_callback(printout)
+    loop.call_later(.25, check, seen, text, watchable, hosts)
+
+
+def send(host, audio):
+    print("Sending {} to {}".format(audio, host))
+    f = open(audio, "rb")
+    files = {'file': f}
+
+    r = requests.post("http://{}:8035/test".format(host), files=files)
+    f.close()
+    return r.text.strip()
+
+
+def watch(directory, hosts):
+    print(loop)
+    seen = set()
+    text = []
+    watchable = Path(directory)
+    loop.call_soon(check, seen, text, watchable, hosts)
+    loop.run_forever()
 
 
 def parse_hosts(hostfile):
@@ -88,5 +101,4 @@ def parse_hosts(hostfile):
 if __name__ == "__main__":
     args = docopt.docopt(__doc__)
     hosts = parse_hosts(args['<hosts_file>'])
-    looper = Looper()
-    looper.watch(args['<directory>'], hosts)
+    watch(args['<directory>'], hosts)
