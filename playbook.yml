@@ -13,6 +13,10 @@
       service:
         name: avahi-daemon.service
         state: restarted
+    - name: Remove old model directory
+      file:
+        state: absent
+        path: /home/pi/models
     - name: Create model directory
       file:
         state: directory
@@ -100,7 +104,8 @@
 
     - name: Start decoder service
       become: true
-      service:
+      systemd:
         name: deepspeech-server.service
-        state: started
+        state: restarted
+        daemon_reload: yes
         enabled: yes
