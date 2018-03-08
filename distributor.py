@@ -7,10 +7,10 @@ from functools import partial
 import docopt
 import re
 from pathlib import Path
-import time
 import asyncio
 import logging
-import redf
+from itertools import cycle
+import socket
 
 GROUP = re.compile(r"\[(\S+)\]")
 
@@ -36,30 +36,42 @@ def tie(fut1, fut2):
 
     def setup_2(f1):
         func = partial(finish_all, f1.result())
-        fut2.add_done_callback(finish_all)
+        fut2.add_done_callback(func)
 
     fut1.add_done_callback(setup_2)
     return fut
 
 
-def check(seen, text, watchable, hosts):
-    print("Checking...")
+def handle(fut1, fut2, func):
+    def fire(f2):
+        func(f2.result())
+
+    def setup_2(f1):
+        fut2.add_done_callback(fire)
+
+    fut1.add_done_callback(setup_2)
+
+
+def sequence(lfut, func):
+    last = loop.create_future()
+    last.set_result(None)
+    for fut in lfut:
+        handle(last, fut, func)
+        last = fut
+
+
+def check(seen, text, watchable, hosts, func):
     futures = []
-    for f in watchable.glob('*'):
+    zipped = zip(watchable.glob('*'), hosts)
+    for f, h in zipped:
         if f not in seen:
             print(f)
             seen.add(f)
-            coro = loop.run_in_executor(None, send, 'localhost', f)
-            fut = loop.create_task(coro)
+            fut = loop.run_in_executor(None, send, h, f)
             futures.append(fut)
 
-    def printout(f):
-        lst = f.result()
-        print(lst)
-
-    fut = combine(futures)
-    fut.add_done_callback(printout)
-    loop.call_later(.25, check, seen, text, watchable, hosts)
+    sequence(futures, func)
+    loop.call_later(.25, check, seen, text, watchable, hosts, func)
 
 
 def send(host, audio):
@@ -67,8 +79,9 @@ def send(host, audio):
     f = open(audio, "rb")
     files = {'file': f}
 
-    r = requests.post("http://{}:8035/test".format(host), files=files)
+    r = requests.post("http://{}:5000/".format(host), files=files)
     f.close()
+    audio.unlink()
     return r.text.strip()
 
 
@@ -77,7 +90,7 @@ def watch(directory, hosts):
     seen = set()
     text = []
     watchable = Path(directory)
-    loop.call_soon(check, seen, text, watchable, hosts)
+    loop.call_soon(check, seen, text, watchable, hosts, print)
     loop.run_forever()
 
 
@@ -90,15 +103,24 @@ def parse_hosts(hostfile):
                 group = line[1:-2]
             else:
                 pieces = line.split()
-                print(group)
-                print(pieces)
                 if len(pieces) > 0:
                     if group == "main":
                         hosts.append(pieces[0])
-    return hosts
+    valid_hosts = []
+    for host in hosts:
+        print("Checking {}...".format(host))
+        try:
+            socket.getaddrinfo(host, 5000)
+            valid_hosts.append(host)
+            print("Live.")
+        except socket.gaierror as e:
+            # These errors happen if a server is not live
+            print("Missing.")
+    return valid_hosts
 
 
 if __name__ == "__main__":
     args = docopt.docopt(__doc__)
     hosts = parse_hosts(args['<hosts_file>'])
-    watch(args['<directory>'], hosts)
+    print(hosts)
+    watch(args['<directory>'], cycle(hosts))
