@@ -16,15 +16,15 @@
     - name: Create model directory
       file:
         state: directory
-        path: /home/pi/models
+        path: /home/pi/project/models
     - name: Sync model alphabet onto system
       synchronize:
         src: ./models/alphabet.txt
-        dest: /home/pi/models/alphabet.txt
+        dest: /home/pi/project/models/alphabet.txt
     - name: Sync model graph onto system
       synchronize:
         src: ./models/output_graph.pb
-        dest: /home/pi/models/output_graph.pb
+        dest: /home/pi/project/models/output_graph.pb
     - name: Install git
       become: true
       apt:
@@ -44,7 +44,7 @@
       copy:
         src: deepspeech-server.service
         dest: /etc/systemd/system/
-    - name: Install sox for deepspeech
+    - name: Install sox for button push
       become: true
       apt:
         name: sox
