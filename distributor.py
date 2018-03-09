@@ -11,6 +11,7 @@ import asyncio
 import logging
 from itertools import cycle
 import socket
+import time
 
 GROUP = re.compile(r"\[(\S+)\]")
 
@@ -43,35 +44,47 @@ def tie(fut1, fut2):
 
 
 def handle(fut1, fut2, func):
+    fut = loop.create_future()
+
     def fire(f2):
+        fut.set_result(f2.result())
         func(f2.result())
 
     def setup_2(f1):
         fut2.add_done_callback(fire)
 
     fut1.add_done_callback(setup_2)
+    return fut
 
 
 def sequence(lfut, func):
     last = loop.create_future()
     last.set_result(None)
     for fut in lfut:
-        handle(last, fut, func)
-        last = fut
+        last = handle(last, fut, func)
+    return last
 
 
-def check(seen, text, watchable, hosts, func):
+def check(seen, text, watchable, hosts, active):
     futures = []
-    zipped = zip(watchable.glob('*'), hosts)
-    for f, h in zipped:
+    #loop.call_later(.25, check, seen, text, watchable, hosts, active)
+    start = time.time()
+    print(start)
+    for f in watchable.glob('*'):
         if f not in seen:
             print(f)
             seen.add(f)
-            fut = loop.run_in_executor(None, send, h, f)
+            host = next(hosts)
+            active[host] = True
+            fut = loop.run_in_executor(None, send, host, f)
             futures.append(fut)
 
-    sequence(futures, func)
-    loop.call_later(.25, check, seen, text, watchable, hosts, func)
+    def result(r):
+        print(r)
+        print("Finished all runs at {} ({} total time)".format(time.time(), time.time()-start))
+        active[r[0]] = False
+
+    sequence(futures, result)
 
 
 def send(host, audio):
@@ -82,7 +95,7 @@ def send(host, audio):
     r = requests.post("http://{}:5000/".format(host), files=files)
     f.close()
     audio.unlink()
-    return r.text.strip()
+    return (host, audio, r.text.strip())
 
 
 def watch(directory, hosts):
@@ -90,7 +103,8 @@ def watch(directory, hosts):
     seen = set()
     text = []
     watchable = Path(directory)
-    loop.call_soon(check, seen, text, watchable, hosts, print)
+    active = {}
+    loop.call_soon(check, seen, text, watchable, hosts, active)
     loop.run_forever()
 
 

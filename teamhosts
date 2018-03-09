@@ -1,6 +1,8 @@
 [main]
 alpha.local ip=192.168.1.13
 bravo.local ip=192.168.1.11
+
+[broken]
 delta.local ip=192.168.1.15
 
 [other]
