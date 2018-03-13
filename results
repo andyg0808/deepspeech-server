@@ -1,0 +1,14 @@
+Multi Pi (2 pis) (bad sequence):
+Finished all runs at 1520545869.058266 (394.54479908943176 total time)
+Finished all runs at 1520546340.1535728 (383.10643005371094 total time)
+Finished all runs at 1520547089.8274124 (388.73266100883484 total time)
+
+Multi Pi (2 pis) (correct sequence):
+Finished all runs at 1520548150.3188019 (404.23471212387085 total time)
+Finished all runs at 1520549052.647477 (391.4213800430298 total time)
+Finished all runs at 1520549763.6379714 (401.94931983947754 total time)
+
+Single Pi:
+8m48.556s
+9m0.022s
+9m2.712s
