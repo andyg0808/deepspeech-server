@@ -17,6 +17,15 @@
       file:
         state: absent
         path: /home/pi/models
+    - name: Install git
+      become: true
+      apt:
+        update_cache: true
+        name: git
+    - name: Clone repo onto system
+      git:
+        repo: https://github.com/andyg0808/deepspeech-server.git
+        dest: /home/pi/project
     - name: Create model directory
       file:
         state: directory
@@ -29,15 +38,6 @@
       synchronize:
         src: ./models/output_graph.pb
         dest: /home/pi/project/models/output_graph.pb
-    - name: Install git
-      become: true
-      apt:
-        update_cache: true
-        name: git
-    - name: Clone repo onto system
-      git:
-        repo: https://github.com/andyg0808/deepspeech-server.git
-        dest: /home/pi/project
     - name: Copy native client to pi
       synchronize:
         recursive: yes
