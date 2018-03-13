@@ -1,7 +1,9 @@
 .PHONY: run image query configure
 
+export HOSTSFILE = bighosts
+
 install:
-	ansible-playbook -i teamhosts playbook.yml
+	ansible-playbook -i $(HOSTSFILE) playbook.yml
 
 run:
 	docker run -p 8035:80 --mount type=bind,source="$(PWD)/models",target=/usr/src/app/models deepspeech-server
