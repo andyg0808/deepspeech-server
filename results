@@ -1,12 +1,32 @@
-Multi Pi (2 pis) (bad sequence):
-Finished all runs at 1520545869.058266 (394.54479908943176 total time)
-Finished all runs at 1520546340.1535728 (383.10643005371094 total time)
-Finished all runs at 1520547089.8274124 (388.73266100883484 total time)
+Multi Pis (6 pis; 6 audio files):
+Finished all runs at 1520979524.276728 (490.9904074668884 total time)
+Finished all runs at 1520981012.347305 (499.80474638938904 total time)
 
-Multi Pi (2 pis) (correct sequence):
-Finished all runs at 1520548150.3188019 (404.23471212387085 total time)
-Finished all runs at 1520549052.647477 (391.4213800430298 total time)
-Finished all runs at 1520549763.6379714 (401.94931983947754 total time)
+Multi Pis (5 pis; 5 audio files):
+Finished all runs at 1520981598.9537957 (154.57246112823486 total time)
+Finished all runs at 1520981789.9967842 (163.43143820762634 total time)
+Finished all runs at 1520982003.9934618 (160.72936582565308 total time)
+
+Multi Pis (4 pis; 5 audio files):
+Finished all runs at 1520982656.0669298 (305.67285895347595 total time)
+Finished all runs at 1520983062.907343 (293.25023221969604 total time)
+Finished all runs at 1520983406.2108707 (303.36054706573486 total time)
+
+Multi Pis (3 pis; 5 audio files):
+Finished all runs at 1520983768.385252 (317.47678422927856 total time)
+Finished all runs at 1520984130.7849815 (325.4254412651062 total time)
+Finished all runs at 1520984614.9996462 (330.5456380844116 total time)
+
+Multi Pis (2 pis; 5 audio files):
+Finished all runs at 1520985029.1504889 (398.6130254268646 total time)
+Finished all runs at 1520985636.6232483 (398.6346957683563 total time)
+
+
+Multi Pis (1 pis; 5 audio files):
+Finished all runs at 1520985690.293337 (782.958758354187 total time)
+
+
+
 
 Single Pi:
 8m48.556s
