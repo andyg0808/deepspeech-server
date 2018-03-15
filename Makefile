@@ -6,7 +6,7 @@ install:
 	ansible-playbook -i $(HOSTSFILE) playbook.yml
 
 run:
-	docker run -p 8035:80 --mount type=bind,source="$(PWD)/models",target=/usr/src/app/models deepspeech-server
+	docker run -p 5000:80 --mount type=bind,source="$(PWD)/models",target=/usr/src/app/models deepspeech-server
 
 image:
 	docker build -t deepspeech-server .
@@ -27,3 +27,12 @@ deepspeech:
 
 wifi:
 	./wifi_host.sh
+
+runtest:
+	bash -c 'cp pieces/sentences00{1..5}.wav input'
+	python ./distributor.py input bighosts
+
+onetest:
+	bash -c 'cp pieces/sentences00{1..5}.wav oneinput'
+	python ./distributor.py oneinput onehosts
+

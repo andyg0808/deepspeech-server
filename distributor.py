@@ -1,6 +1,10 @@
 """
 Usage:
-    distributor.py <directory> <hosts_file>
+    distributor.py [options] <directory> <hosts_file>
+
+Options:
+    --maxfiles=N  Specify the maximum number of files to process before the
+                  server shuts down. [Default: -1]
 """
 import requests
 from functools import partial
@@ -9,9 +13,11 @@ import re
 from pathlib import Path
 import asyncio
 import logging
-from itertools import cycle
+import itertools
 import socket
 import time
+import sys
+import subprocess
 
 GROUP = re.compile(r"\[(\S+)\]")
 
@@ -65,24 +71,23 @@ def sequence(lfut, func):
     return last
 
 
-def check(seen, text, watchable, hosts, active):
+def check(seen, text, watchable, hosts, quitter):
     futures = []
-    #loop.call_later(.25, check, seen, text, watchable, hosts, active)
+    loop.call_later(.25, check, seen, text, watchable, hosts, quitter)
     start = time.time()
-    print(start)
+    #print(start)
     for f in watchable.glob('*'):
         if f not in seen:
-            print(f)
+            print("file", f)
             seen.add(f)
             host = next(hosts)
-            active[host] = True
             fut = loop.run_in_executor(None, send, host, f)
             futures.append(fut)
 
     def result(r):
-        print(r)
+        print("results", r)
         print("Finished all runs at {} ({} total time)".format(time.time(), time.time()-start))
-        active[r[0]] = False
+        quitter.check(r)
 
     sequence(futures, result)
 
@@ -98,13 +103,12 @@ def send(host, audio):
     return (host, audio, r.text.strip())
 
 
-def watch(directory, hosts):
-    print(loop)
+def watch(directory, hosts, quit_cond):
     seen = set()
     text = []
     watchable = Path(directory)
-    active = {}
-    loop.call_soon(check, seen, text, watchable, hosts, active)
+
+    loop.call_soon(check, seen, text, watchable, hosts, quit_cond)
     loop.run_forever()
 
 
@@ -132,9 +136,22 @@ def parse_hosts(hostfile):
             print("Missing.")
     return valid_hosts
 
+class Quitter:
+    def __init__(self, n):
+        self.finished = n
+    def check(self, r):
+        self.finished -= 1
+        if self.finished == 0:
+            sys.exit(0)
+
 
 if __name__ == "__main__":
     args = docopt.docopt(__doc__)
     hosts = parse_hosts(args['<hosts_file>'])
-    print(hosts)
-    watch(args['<directory>'], cycle(hosts))
+    print("hosts", hosts)
+
+    quitter = Quitter(int(args['--maxfiles']))
+
+    hostiter = itertools.cycle(hosts)
+
+    watch(args['<directory>'], hostiter, quitter)
