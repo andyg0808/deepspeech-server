@@ -1,0 +1,19 @@
+[main]
+abbey.local ip=192.168.1.18
+acorn.local
+adley.local ip=192.168.1.20
+aaron.local ip=192.168.1.19
+bravo.local
+
+[broken]
+delta.local ip=192.168.1.15
+
+[other]
+localhost  ansible_connection=local
+
+alpha.local
+alpha.local
+ada.local   ip=192.168.1.149
+agnes.local ip=192.168.1.160
+
+echo.local  ip=192.168.1.10
