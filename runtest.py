@@ -14,6 +14,7 @@ import subprocess
 import re
 import sys
 import time
+import datetime
 
 
 def run_with_hosts(files, hosts):
@@ -42,7 +43,7 @@ def interpret_process(results, hosts, files, process):
     if len(times) < files:
         print("Too few results; expected {}; got {}.\n".format(files, times), output)
         sys.exit(2)
-    results.write("runtest.py ({} pis; {} audio files):\n".format(hosts, files))
+    results.write("runtest.py {} ({} pis; {} audio files):\n".format(datetime.datetime.now(), hosts, files))
     results.write(times[-1]+"\n")
     results.flush()
 
@@ -57,7 +58,7 @@ def main(output_file, files, hostfile):
                 process.wait()
                 interpret_process(results, len(hosts), files, process)
         else:
-            for i in range(len(hosts)//2):
+            for i in range(len(hosts)//2+1):
                 used_hosts = hosts[i:len(hosts)]
                 used_hosts2 = hosts[0:i]
                 for x in range(3):
