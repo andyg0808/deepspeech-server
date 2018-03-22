@@ -16,6 +16,7 @@ werkzeug = "==0.14.1"
 docopt = "*"
 requests = "*"
 six = "*"
+sox = "*"
 
 
 [dev-packages]
