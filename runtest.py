@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 """
 Usage:
-    runtest [--outputfile=<filename>] <filecount> <hostfile>
+    runtest [options] <filecount> <hostfile>
 
 Options:
     --outputfile=<filename>  Write output into specified file [Default: outputfile]
+    --hosts=<count>          Use exactly <count> hosts to run the files
 """
 import shutil
 import tempfile
@@ -48,20 +49,25 @@ def interpret_process(results, hosts, files, process):
     results.flush()
 
 
-def main(output_file, files, hostfile):
+def main(output_file, files, hostfile, host_count=0, repeats=3):
     hosts = distributor.parse_hosts(hostfile)
 
     with open(output_file, "a") as results:
         if len(hosts) == 1:
-            for x in range(3):
+            for x in range(repeats):
                 process, *handles = run_with_hosts(files, hosts)
                 process.wait()
                 interpret_process(results, len(hosts), files, process)
+        elif host_count != 0:
+            for x in range(repeats):
+                process, *handles = run_with_hosts(files, hosts[0:host_count])
+                process.wait()
+                interpret_process(results, host_count, files, process)
         else:
             for i in range(len(hosts)//2+1):
                 used_hosts = hosts[i:len(hosts)]
                 used_hosts2 = hosts[0:i]
-                for x in range(3):
+                for x in range(repeats):
                     # Tempfiles are destroyed when the objects in handles are
                     # garbage collected. So we only need to keep them alive for the
                     # duration of the distributor process. That's the job of the
@@ -80,4 +86,7 @@ def main(output_file, files, hostfile):
 
 if __name__ == "__main__":
     options = docopt.docopt(__doc__)
-    main(options['--outputfile'], int(options['<filecount>']), options['<hostfile>'])
+    if options['--hosts']:
+        main(options['--outputfile'], int(options['<filecount>']), options['<hostfile>'], host_count=int(options['--hosts']))
+    else:
+        main(options['--outputfile'], int(options['<filecount>']), options['<hostfile>'])
