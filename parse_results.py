@@ -1,6 +1,6 @@
 """
 Usage:
-    parse_results.py [--output=<output_file>] <results_file>
+    parse_results.py [--output=<output_file>] <results_file>...
 """
 from os.path import basename
 import docopt
@@ -33,8 +33,10 @@ def parse_results(input_file):
 
     return results
 
-def main(infile, outfile):
-    results = parse_results(infile)
+def main(infiles, outfile):
+    results = []
+    for f in infiles:
+        results += parse_results(f)
     data = pd.DataFrame(results)
     data.to_csv(outfile)
 
@@ -42,10 +44,10 @@ def main(infile, outfile):
 
 if __name__ == "__main__":
     options = docopt.docopt(__doc__)
-    input_file = options['<results_file>']
+    input_files = options['<results_file>']
     if options['--output']:
         output_file = options['--output']
     else:
-        output_file = basename(input_file)+'.csv'
-    main(input_file, output_file)
+        output_file = basename(input_files[0])+'.csv'
+    main(input_files, output_file)
 
